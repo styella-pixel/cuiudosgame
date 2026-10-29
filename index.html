@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+
+    <title>Meu Joguinho</title>
+
+    <style>
+
+        /* =====================================================
+           CONFIGURAÇÕES GERAIS
+        ===================================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            height: 100vh; /* fallback para navegadores antigos, incluindo alguns MI Browser */
+            height: 100dvh; /* acompanha as barras do navegador quando aparecem/desaparecem */
+            min-height: 0;
+            margin: 0;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        :root { --altura-visivel: 100vh; }
+        @supports (height: 100svh) { :root { --altura-visivel: 100svh; } }
+        @supports (height: 100dvh) { :root { --altura-visivel: 100dvh; } }
+
+        /* Botão opcional: tenta ocultar a interface do navegador quando permitido. */
+        #botaoTelaCheia {
+            position: fixed; z-index: 99990; top: max(8px, env(safe-area-inset-top));
+            right: max(8px, env(safe-area-inset-right));
+            max-width: 48vw; padding: 8px 10px; border: 2px solid #fff0ce;
+            background: #172b2b; color: #fff0ce; font: bold 12px monospace;
+            box-shadow: 3px 3px 0 #0008; cursor: pointer; touch-action: manipulation;
+        }
+        #ajudaTelaCheia {
+            display:none; position:fixed; inset:0; z-index:99991; align-items:center;
+            justify-content:center; padding:22px; background:#101b1bf2; color:#fff0ce;
+            font:14px/1.6 monospace; text-align:center;
+        }
+        #ajudaTelaCheia .cartao-ajuda { width:min(440px,100%); padding:22px; border:3px solid #fff0ce; background:#203737; }
+        #ajudaTelaCheia button { margin-top:14px; padding:10px 16px; border:2px solid #fff0ce; background:#fff0ce; color:#172b2b; font:bold 14px monospace; }
+        @media (max-width:900px) { #botaoTelaCheia { font-size:11px; padding:7px 8px; } }
+        @media (display-mode: fullscreen) { #botaoTelaCheia { display:none; } }
+        @media (display-mode: standalone) { #botaoTelaCheia { display:none; } }
+
+        body {
+            overflow: hidden;
+            position: relative;
+
+            font-family: monospace;
+            color: white;
+        }
+
+
+        /* =====================================================
+           BACKGROUND
+        ===================================================== */
+
+        body::before {
+            content: "";
+
+            position: fixed;
+            inset: -10px;
+
+            background-image: url("imagens/background.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            filter: blur(3px);
+
+            z-index: -2;
+        }
+
+
+        /* =====================================================
+           CAMADA ESCURA
+        ===================================================== */
+
+        body::after {
+            content: "";
+
+            position: fixed;
+            inset: 0;
+
+            background: rgba(0, 0, 0, 0.12);
+
+            z-index: -1;
+        }
+
+
+        /* =====================================================
+           MENU PRINCIPAL
+        ===================================================== */
+
+        .menu {
+            width: 100%;
+            height: 100vh;
+
+            display: flex;
+            flex-direction: column;
+
+            justify-content: center;
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 20px;
+        }
+
+
+        /* =====================================================
+           LOGO
+        ===================================================== */
+
+        .logo {
+            width: 520px;
+            max-width: 90%;
+            height: auto;
+
+            object-fit: contain;
+
+            animation: flutuar 3s ease-in-out infinite;
+
+            margin-bottom: 5px;
+        }
+
+        @keyframes flutuar {
+
+            0%,
+            100% {
+                transform: translate(-20px, 0);
+            }
+
+            50% {
+                transform: translate(-20px, -12px);
+            }
+        }
+
+
+        /* =====================================================
+           CAIXA DOS BOTÕES
+        ===================================================== */
+
+        .botoes-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            gap: 8px;
+
+            width: 100%;
+
+            transform: translateY(-125px);
+        }
+
+
+        /* =====================================================
+           BOTÃO PIXEL
+        ===================================================== */
+
+        .botao-pixel {
+            width: 260px;
+            max-width: 90%;
+
+            padding: 14px 20px;
+
+            background: #29233e;
+            color: white;
+
+            border: 4px solid #fff0ce;
+
+            box-shadow:
+                inset -4px -4px 0 #171327,
+                inset 4px 4px 0 #514466,
+                5px 5px 0 #171327;
+
+            font-family: monospace;
+            font-size: 19px;
+            font-weight: bold;
+
+            letter-spacing: 2px;
+
+            text-align: center;
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.1s,
+                background 0.1s,
+                box-shadow 0.1s;
+        }
+
+        .botao-pixel:hover {
+            background: #55436f;
+            color: #ffe9a8;
+
+            transform: translate(-3px, -3px);
+
+            box-shadow:
+                inset -4px -4px 0 #332344,
+                inset 4px 4px 0 #80679c,
+                8px 8px 0 #171327;
+        }
+
+        .botao-pixel:active {
+            transform: translate(3px, 3px);
+
+            box-shadow:
+                inset 4px 4px 0 #171327,
+                inset -4px -4px 0 #514466,
+                2px 2px 0 #171327;
+        }
+
+
+        /* =====================================================
+           PEDIDO DE MÚSICA — QUASE TELA CHEIA
+        ===================================================== */
+
+        .pedido-musica {
+            position: fixed;
+            inset: 0;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            gap: 45px;
+
+            background: rgba(0, 0, 0, 0.60);
+
+            z-index: 9999;
+
+            animation: aparecerMusica 0.3s ease;
+        }
+
+
+        /* =====================================================
+           CACHORRO PIXEL
+        ===================================================== */
+
+        .cachorro-musica {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cachorro-musica img {
+            width: min(420px, 38vw);
+            height: auto;
+
+            image-rendering: pixelated;
+
+            filter:
+                drop-shadow(10px 10px 0 #171327);
+
+            animation: cachorroFlutua 2s ease-in-out infinite;
+        }
+
+
+        /* =====================================================
+           BALÃO
+        ===================================================== */
+
+        .balao-musica {
+            position: relative;
+
+            width: min(520px, 42vw);
+
+            min-height: 300px;
+
+            padding: 55px 50px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            background: #fff0ce;
+
+            border: 8px solid #171327;
+
+            box-shadow:
+                12px 12px 0 #171327;
+
+            color: #29233e;
+
+            text-align: center;
+
+            font-family: monospace;
+        }
+
+
+        /* =====================================================
+           BICO DO BALÃO
+        ===================================================== */
+
+        .balao-musica::before {
+            content: "";
+
+            position: absolute;
+
+            left: -30px;
+            bottom: 75px;
+
+            width: 35px;
+            height: 35px;
+
+            background: #fff0ce;
+
+            border-left: 8px solid #171327;
+            border-bottom: 8px solid #171327;
+
+            transform: rotate(45deg);
+        }
+
+
+        /* =====================================================
+           TEXTO
+        ===================================================== */
+
+        .balao-musica p {
+            margin: 0 0 40px;
+
+            font-size: clamp(25px, 3vw, 38px);
+
+            font-weight: bold;
+
+            line-height: 1.4;
+
+            text-transform: lowercase;
+        }
+
+
+        /* =====================================================
+           BOTÃO SIM
+        ===================================================== */
+
+        .sim-musica {
+            min-width: 220px;
+
+            padding: 18px 35px;
+
+            background: #29233e;
+            color: #fff0ce;
+
+            border: 6px solid #171327;
+
+            box-shadow:
+                inset -6px -6px 0 #171327,
+                inset 6px 6px 0 #514466,
+                7px 7px 0 #171327;
+
+            font-family: monospace;
+            font-size: 28px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .sim-musica:hover {
+            background: #55436f;
+            color: #ffe9a8;
+
+            transform: translate(-4px, -4px);
+
+            box-shadow:
+                inset -6px -6px 0 #332344,
+                inset 6px 6px 0 #80679c,
+                10px 10px 0 #171327;
+        }
+
+
+        /* =====================================================
+           BOTÃO X
+        ===================================================== */
+
+        .fechar-musica {
+            position: absolute;
+
+            top: -25px;
+            right: -25px;
+
+            width: 58px;
+            height: 58px;
+
+            background: #29233e;
+            color: white;
+
+            border: 6px solid #fff0ce;
+
+            box-shadow:
+                6px 6px 0 #171327;
+
+            font-family: monospace;
+            font-size: 25px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .fechar-musica:hover {
+            background: #55436f;
+
+            transform: translate(-3px, -3px);
+        }
+
+
+        /* =====================================================
+           ANIMAÇÕES
+        ===================================================== */
+
+        @keyframes aparecerMusica {
+
+            from {
+                opacity: 0;
+                transform: scale(0.85);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+        }
+
+
+        @keyframes cachorroFlutua {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-12px);
+            }
+
+        }
+
+
+        /* =====================================================
+           TELAS INTERNAS
+        ===================================================== */
+
+        .tela {
+            position: fixed;
+            inset: 0;
+
+            display: none;
+
+            justify-content: center;
+            align-items: center;
+
+            padding: 30px;
+
+            background: rgba(18, 14, 30, 0.82);
+
+            z-index: 10;
+        }
+
+        .tela.ativa {
+            display: flex;
+
+            animation: aparecer 0.25s ease;
+        }
+
+        @keyframes aparecer {
+
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+
+        /* =====================================================
+           CAIXA DAS TELAS
+        ===================================================== */
+
+        .caixa {
+            width: min(700px, 92%);
+            max-height: 85vh;
+
+            overflow-y: auto;
+
+            padding: 35px;
+
+            background: #29233e;
+
+            border: 5px solid #fff0ce;
+
+            box-shadow:
+                inset -6px -6px 0 #171327,
+                inset 6px 6px 0 #514466,
+                10px 10px 0 #171327;
+
+            text-align: center;
+        }
+
+
+        /* =====================================================
+           TÍTULOS
+        ===================================================== */
+
+        .caixa h1 {
+            margin-bottom: 25px;
+
+            color: #ffe9a8;
+
+            font-size: 32px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 3px;
+
+            text-shadow:
+                3px 3px 0 #171327;
+        }
+
+        .caixa h2 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+
+            color: #fff0ce;
+
+            font-size: 20px;
+        }
+
+
+        /* =====================================================
+           TEXTOS
+        ===================================================== */
+
+        .caixa p {
+            margin-bottom: 15px;
+
+            font-size: 17px;
+
+            line-height: 1.6;
+        }
+
+        .caixa ul {
+            margin: 15px auto 25px;
+
+            width: fit-content;
+
+            text-align: left;
+
+            font-size: 17px;
+
+            line-height: 2;
+        }
+
+
+        /* =====================================================
+           BOTÃO VOLTAR
+        ===================================================== */
+
+        .botao-voltar {
+            margin-top: 20px;
+
+            padding: 12px 28px;
+
+            background: #55436f;
+            color: white;
+
+            border: 4px solid #fff0ce;
+
+            box-shadow:
+                inset -4px -4px 0 #332344,
+                inset 4px 4px 0 #80679c,
+                5px 5px 0 #171327;
+
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .botao-voltar:hover {
+            background: #70598e;
+            color: #ffe9a8;
+
+            transform: translate(-2px, -2px);
+        }
+
+
+        /* =====================================================
+           TELA DO JOGO
+        ===================================================== */
+
+        #telaJogo {
+            padding: 0;
+            overflow: hidden;
+            background: #171327;
+            flex-direction: column;
+            cursor: pointer;
+            isolation: isolate;
+        }
+
+        /* Cenário da visual novel: desenho PNG lapide.png dentro da pasta imagens */
+        .cena-visual-novel {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background-color: #29233e;
+            background-image: linear-gradient(to bottom, rgba(15, 12, 28, .02), rgba(15, 12, 28, .22)), url("imagens/lapide.png");
+            /* Mantém o desenho em tamanho médio, sem esticá-lo para cobrir o monitor inteiro */
+            background-size: 100% 100%, auto 76vh;
+            background-position: center, center 42%;
+            background-repeat: no-repeat, no-repeat;
+        }
+
+        /* Bancada em pixel art: coloque o arquivo bancada.png dentro de imagens */
+        .bancada-bar {
+            display: none;
+            position: absolute;
+            left: -8vw;
+            right: -8vw;
+            bottom: -13vh;
+            width: auto;
+            height: 58vh;
+            z-index: 1;
+            pointer-events: none;
+            background-image: url("imagens/bancada_recortada.png");
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            background-size: 100% 100%;
+            image-rendering: pixelated;
+        }
+
+        #telaJogo.cena-bar .cena-visual-novel {
+            background: none;
+        }
+
+        /* Fundo do bar: imagem bckg levemente borrada, só depois da transição */
+        #telaJogo.cena-bar .cena-visual-novel::before {
+            content: "";
+            position: absolute;
+            inset: -7px;
+            background-image: linear-gradient(to bottom, rgba(17, 14, 29, .08), rgba(17, 14, 29, .22)), url("imagens/bckg.jpe");
+            background-size: 120% 72vh;
+            background-position: center 12%;
+            background-repeat: no-repeat;
+            filter: blur(3px);
+        }
+
+        #telaJogo.cena-bar .bancada-bar {
+            display: block;
+        }
+
+        /* Personagem: fica atrás do PNG da bancada (mais acima do balcão) */
+        .personagem-bar {
+            display: none;
+            position: absolute;
+            left: 50%;
+            bottom: 30vh;
+            transform: translateX(-50%);
+            width: min(48vw, 620px);
+            height: 78vh;
+            z-index: 0;
+            pointer-events: none;
+            object-fit: contain;
+            object-position: center bottom;
+            image-rendering: pixelated;
+            opacity: 0;
+            filter: brightness(0);
+            transition: opacity 1.4s ease, filter 1.1s ease;
+        }
+
+        #telaJogo.personagem-visivel .personagem-bar {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Remove o shade preto e revela a personagem colorida */
+        #telaJogo.personagem-revelada .personagem-bar {
+            filter: none;
+        }
+
+        .botao-sair-cena {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            z-index: 3;
+            padding: 9px 13px;
+            border: 3px solid #fff0ce;
+            background: #29233e;
+            color: #fff0ce;
+            box-shadow: 4px 4px 0 #171327;
+            font: bold 14px monospace;
+            cursor: pointer;
+        }
+
+        .caixa-dialogo {
+            position: absolute;
+            z-index: 2;
+            left: 50%;
+            bottom: clamp(22px, 6vh, 65px);
+            transform: translateX(-50%);
+            width: min(1000px, calc(100% - 44px));
+            min-height: 175px;
+            padding: 30px 34px 35px;
+            border: 4px solid #fff0ce;
+            outline: 4px solid #171327;
+            background: rgba(23, 19, 39, .96);
+            box-shadow: inset 0 0 0 4px #55436f, 8px 8px 0 rgba(0,0,0,.55);
+            color: #fff0ce;
+            text-align: left;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .nome-falante {
+            position: absolute;
+            top: -25px;
+            left: 20px;
+            max-width: calc(100% - 40px);
+            padding: 7px 16px;
+            border: 3px solid #171327;
+            outline: 2px solid #fff0ce;
+            background: #55436f;
+            color: #fff0ce;
+            font: bold 15px monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .texto-dialogo {
+            min-height: 78px;
+            font: 18px/1.8 monospace;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .indicador-continuar {
+            position: absolute;
+            right: 18px;
+            bottom: 10px;
+            color: #ffe9a8;
+            font: bold 18px monospace;
+            animation: setaDialogo .7s steps(2, end) infinite;
+        }
+
+        .form-nome-jogador {
+            display: none;
+            gap: 10px;
+            align-items: center;
+            margin-top: 12px;
+            max-width: 100%;
+        }
+        .form-nome-jogador.visivel { display: flex; }
+        .form-nome-jogador input {
+            min-width: 0;
+            width: min(360px, 65%);
+            padding: 10px 12px;
+            border: 3px solid #fff0ce;
+            background: #171327;
+            color: #fff0ce;
+            font: bold 16px monospace;
+            outline: none;
+        }
+        .form-nome-jogador button {
+            padding: 10px 14px;
+            border: 3px solid #fff0ce;
+            background: #55436f;
+            color: #fff0ce;
+            font: bold 14px monospace;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 #171327;
+        }
+        .form-nome-jogador button:hover { background: #766092; }
+
+        .caixa-dialogo.digitando .indicador-continuar { visibility: hidden; }
+
+        @keyframes setaDialogo {
+            0%, 100% { opacity: .25; transform: translateY(-2px); }
+            50% { opacity: 1; transform: translateY(2px); }
+        }
+
+        @media (max-width: 700px) {
+            .cena-visual-novel {
+                background-size: 100% 100%, auto 66vh;
+                background-position: center, center 36%;
+            }
+            .caixa-dialogo {
+                bottom: 22px;
+                width: calc(100% - 28px);
+                min-height: 155px;
+                padding: 26px 20px 32px;
+            }
+            .texto-dialogo { font-size: 15px; line-height: 1.7; }
+            .nome-falante { font-size: 12px; top: -22px; }
+            .botao-sair-cena { top: 12px; left: 12px; font-size: 12px; }
+        }
+
+
+        /* =====================================================
+           TELA DE SAÍDA
+        ===================================================== */
+
+        .saida h1 {
+            color: #ffe9a8;
+        }
+
+
+
+        /* =====================================================
+           MINIGAME — ATENDIMENTO DO BAR
+        ===================================================== */
+        .modo-atendimento { display:none; position:absolute; inset:0; z-index:5; color:#fff0ce; font-family:monospace; cursor:default; }
+        #telaJogo.atendendo .modo-atendimento { display:block; }
+        #telaJogo.atendendo .caixa-dialogo, #telaJogo.atendendo .personagem-bar { display:none !important; }
+        .painel-pedido { position:absolute; top:22px; left:50%; transform:translateX(-50%); width:min(620px,calc(100% - 150px)); padding:15px 20px; text-align:center; background:rgba(23,19,39,.95); border:4px solid #fff0ce; box-shadow:6px 6px 0 #171327; z-index:4; }
+        .painel-pedido h2 { color:#ffe9a8; font-size:clamp(17px,2vw,25px); margin-bottom:8px; }
+        .painel-pedido p { font-size:clamp(14px,1.6vw,19px); line-height:1.4; }
+        .barra-tempo-fundo { height:18px; margin-top:12px; background:#4b293c; border:3px solid #171327; }
+        .barra-tempo { height:100%; width:100%; background:#a5d6a7; transition:width .15s linear,background .2s; }
+        .cliente-pixel { position:absolute; left:50%; top:48%; transform:translate(-50%,-50%); width:min(260px,27vw); height:min(330px,45vh); display:flex; align-items:center; justify-content:center; font-size:clamp(90px,15vw,170px); filter:drop-shadow(7px 7px 0 #171327); image-rendering:pixelated; z-index:2; }
+        .fala-cliente { position:absolute; left:calc(50% + min(120px,12vw)); top:32%; max-width:min(270px,38vw); padding:12px 15px; color:#29233e; background:#fff0ce; border:4px solid #171327; box-shadow:5px 5px 0 #171327; font-size:clamp(12px,1.4vw,17px); z-index:3; }
+        .balcao-atendimento { position:absolute; left:-5%; right:-5%; bottom:0; height:24%; background:repeating-linear-gradient(90deg,#75432f 0 65px,#89533a 65px 130px); border-top:9px solid #d49a5d; box-shadow:0 -7px 0 #171327; z-index:3; }
+        .botao-virar { position:absolute; bottom:22px; left:50%; transform:translateX(-50%); z-index:7; padding:13px 18px; min-width:min(310px,80vw); background:#29233e; color:#fff0ce; border:4px solid #fff0ce; box-shadow:5px 5px 0 #171327; font:bold 15px monospace; cursor:pointer; }
+        .botao-virar:hover { background:#55436f; color:#ffe9a8; }
+        .tela-estoque { display:none; position:absolute; inset:0; z-index:6; background:linear-gradient(#273e3d,#172b2b); padding:95px 22px 95px; text-align:center; }
+        #telaJogo.virado .tela-estoque { display:block; }
+        #telaJogo.virado .painel-pedido { display:none; }
+        #telaJogo.virado .cliente-pixel, #telaJogo.virado .fala-cliente, #telaJogo.virado .balcao-atendimento { display:none; }
+        /* Esconde o botão da tela frontal enquanto o estoque está aberto,
+           para ele não cobrir o botão “Voltar para o cliente”. */
+        #telaJogo.virado #botaoVirar { display:none; }
+        .tela-estoque h2 { font-size:clamp(18px,2.5vw,28px); margin-bottom:8px; color:#ffe9a8; }
+        .tela-estoque p { margin-bottom:18px; }
+        .grade-itens { display:grid; grid-template-columns:repeat(5,minmax(90px,1fr)); gap:12px; width:min(850px,100%); margin:0 auto; }
+        .item-estoque { min-height:100px; padding:10px 5px; background:#fff0ce; color:#29233e; border:4px solid #171327; box-shadow:4px 4px 0 #0c1717; font:bold 13px monospace; cursor:pointer; }
+        .item-estoque span { display:block; font-size:34px; margin-bottom:6px; }
+        .item-estoque .imagem-item-estoque img { width:68px; height:68px; object-fit:contain; image-rendering:pixelated; vertical-align:middle; }
+        .item-estoque:hover { background:#ffe9a8; transform:translateY(-3px); }
+        .item-estoque:disabled { opacity:.4; cursor:not-allowed; }
+        .mensagem-atendimento { position:absolute; z-index:9; top:50%; left:50%; transform:translate(-50%,-50%); width:min(520px,88%); padding:25px; text-align:center; background:#29233e; border:5px solid #fff0ce; box-shadow:8px 8px 0 #171327; display:none; }
+        .mensagem-atendimento.visivel { display:block; }
+        .mensagem-atendimento h2 { color:#ffe9a8; margin-bottom:12px; }
+        .mensagem-atendimento p { line-height:1.5; margin-bottom:18px; }
+        .mensagem-atendimento button { padding:12px 20px; background:#55436f; color:white; border:3px solid #fff0ce; font:bold 15px monospace; cursor:pointer; }
+        .placar-atendimento { position:absolute; right:18px; top:20px; z-index:5; background:#171327ef; padding:10px 12px; border:3px solid #fff0ce; font-weight:bold; }
+        @media(max-width:650px) {
+            .painel-pedido { top:12px; width:calc(100% - 24px); }
+            .cliente-pixel { top:49%; width:45vw; }
+            .fala-cliente { top:37%; left:auto; right:10px; max-width:42vw; }
+            .grade-itens { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+            .item-estoque { min-height:75px; font-size:11px; }
+            .item-estoque span { display:inline-block; font-size:25px; margin:0 6px 0 0; vertical-align:middle; }
+            .item-estoque .imagem-item-estoque img { width:50px; height:50px; }
+            .tela-estoque { overflow-y:auto; padding-top:80px; }
+            .placar-atendimento { top:auto; right:8px; bottom:82px; font-size:12px; }
+            .botao-virar { bottom:12px; }
+        }
+
+
+        /* Tutorial inicial e adaptação para telas de celular */
+        .tutorial-atendimento { display:none; position:absolute; inset:0; z-index:20; align-items:center; justify-content:center; padding:18px; background:rgba(7,17,18,.82); }
+        .tutorial-atendimento.visivel { display:flex; }
+        .tutorial-cartao { width:min(520px,100%); max-height:90%; overflow-y:auto; padding:clamp(18px,4vw,30px); color:#29233e; background:#fff0ce; border:5px solid #29233e; outline:3px solid #fff0ce; box-shadow:8px 8px 0 #0c1717; }
+        .tutorial-icone { font-size:42px; text-align:center; }
+        .tutorial-cartao h2 { margin:8px 0 12px; text-align:center; font-size:clamp(18px,4vw,25px); color:#55436f; }
+        .tutorial-cartao p { line-height:1.45; margin:9px 0; }
+        .tutorial-cartao ol { padding-left:24px; line-height:1.55; }
+        .tutorial-cartao li { margin:7px 0; }
+        .tutorial-cartao .tutorial-dica { font-size: .92em; }
+        .tutorial-cartao button { display:block; width:100%; margin-top:16px; padding:14px 10px; background:#29233e; color:#fff0ce; border:3px solid #55436f; font:bold 14px monospace; cursor:pointer; }
+        @media (max-width:650px) {
+            #telaJogo { min-height:var(--altura-visivel); height:var(--altura-visivel); overflow:hidden; }
+            #telaJogo.atendendo .modo-atendimento { position:fixed; inset:0; width:100%; height:var(--altura-visivel); min-height:var(--altura-visivel); overflow:hidden; }
+            .painel-pedido { top:max(10px, env(safe-area-inset-top)); width:calc(100% - 28px); padding:12px 12px; border-width:3px; }
+            .painel-pedido h2 { font-size:clamp(16px,4.5vw,21px); }
+            .painel-pedido p { font-size:clamp(13px,3.6vw,16px); }
+            .barra-tempo-fundo { height:15px; }
+            .placar-atendimento { top:auto; bottom:calc(78px + env(safe-area-inset-bottom)); left:50%; right:auto; transform:translateX(-50%); width:max-content; max-width:calc(100% - 20px); padding:7px 9px; font-size:11px; white-space:nowrap; }
+            .cliente-pixel { top:48%; width:55vw; height:34vh; font-size:clamp(90px,28vw,145px); }
+            .fala-cliente { top:34%; left:auto; right:12px; max-width:48%; padding:9px 10px; border-width:3px; font-size:clamp(11px,3vw,14px); }
+            .balcao-atendimento { height:20%; border-top-width:6px; }
+            .botao-virar { bottom:calc(12px + env(safe-area-inset-bottom)); width:calc(100% - 36px); min-width:0; max-width:420px; padding:14px 10px; font-size:clamp(12px,3.2vw,15px); border-width:3px; white-space:normal; }
+            .tela-estoque { position:absolute; inset:0; padding:calc(16px + env(safe-area-inset-top)) 14px calc(86px + env(safe-area-inset-bottom)); overflow-y:auto; -webkit-overflow-scrolling:touch; }
+            .tela-estoque h2 { font-size:clamp(19px,5vw,25px); }
+            .tela-estoque p { font-size:13px; margin-bottom:12px; }
+            .grade-itens { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; width:100%; }
+            .item-estoque { display:flex; align-items:center; justify-content:center; gap:7px; min-height:68px; padding:8px 5px; border-width:3px; font-size:clamp(11px,3vw,13px); overflow-wrap:anywhere; }
+            .item-estoque span { display:inline-block; flex-shrink:0; font-size:25px; margin:0; }
+            .item-estoque .imagem-item-estoque img { width:50px; height:50px; }
+            .tela-estoque .botao-virar { position:fixed; bottom:calc(10px + env(safe-area-inset-bottom)); left:50%; width:calc(100% - 28px); }
+            .mensagem-atendimento { width:calc(100% - 34px); padding:20px 16px; border-width:4px; }
+            .mensagem-atendimento h2 { font-size:clamp(18px,5vw,24px); }
+            .mensagem-atendimento p { font-size:14px; }
+            .tutorial-atendimento { padding:14px; }
+            .tutorial-cartao { max-height:calc(var(--altura-visivel) - 28px); padding:18px 16px; border-width:4px; }
+            .tutorial-cartao ol { font-size:13px; }
+        }
+        @media (max-height:520px) and (orientation:landscape) {
+            .painel-pedido { top:6px; padding:7px 10px; }
+            .painel-pedido h2 { margin-bottom:4px; }
+            .painel-pedido p { font-size:12px; }
+            .barra-tempo-fundo { margin-top:6px; }
+            .cliente-pixel { top:53%; height:38vh; font-size:80px; }
+            .fala-cliente { top:35%; }
+            .grade-itens { grid-template-columns:repeat(5,minmax(0,1fr)); }
+            .item-estoque { min-height:58px; }
+        }
+
+
+        /* O jogo exige celular na horizontal */
+        .aviso-orientacao { display:none; }
+        @media screen and (max-width: 900px) and (orientation: portrait) {
+            .aviso-orientacao {
+                position:fixed; inset:0; z-index:2147483647; display:flex;
+                flex-direction:column; align-items:center; justify-content:center;
+                gap:18px; padding:28px; text-align:center;
+                color:#fff0ce; background:#172b2b;
+                font-family:monospace;
+            }
+            .aviso-orientacao .icone-girar { font-size:clamp(56px,18vw,100px); animation:giraCelular 1.8s ease-in-out infinite; }
+            .aviso-orientacao h2 { font-size:clamp(20px,6vw,30px); line-height:1.35; }
+            .aviso-orientacao p { max-width:340px; font-size:clamp(14px,4vw,18px); line-height:1.6; }
+        }
+        @keyframes giraCelular { 0%,20% { transform:rotate(0deg); } 65%,100% { transform:rotate(90deg); } }
+
+        /* =====================================================
+           SCROLLBAR
+        ===================================================== */
+
+        .caixa::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .caixa::-webkit-scrollbar-track {
+            background: #171327;
+        }
+
+        .caixa::-webkit-scrollbar-thumb {
+            background: #fff0ce;
+
+            border: 3px solid #171327;
+        }
+
+
+
+        /* =====================================================
+           TRANSIÇÃO AO CLICAR EM JOGAR
+        ===================================================== */
+
+        .transicao-jogo {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #171327;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .transicao-jogo.ativa {
+            visibility: visible;
+            pointer-events: all;
+            animation: fadeJogo 1.35s ease-in-out forwards;
+        }
+
+        .icone-transicao {
+            color: #fff0ce;
+            font-size: 28px;
+            line-height: 1;
+            text-shadow: 3px 3px 0 #55436f;
+            image-rendering: pixelated;
+            animation: brilhoIcone 0.65s steps(2, end) infinite;
+        }
+
+        @keyframes fadeJogo {
+            0%   { opacity: 0; }
+            35%  { opacity: 1; }
+            75%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes brilhoIcone {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50%      { transform: scale(1.18); opacity: 0.65; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .transicao-jogo.ativa { animation-duration: 0.25s; }
+            .icone-transicao { animation: none; }
+        }
+
+        /* =====================================================
+           RESPONSIVIDADE
+        ===================================================== */
+
+        @media (max-height: 700px) {
+
+            .menu {
+                gap: 5px;
+            }
+
+            .logo {
+                width: 340px;
+            }
+
+            .botoes-menu {
+                gap: 6px;
+
+                transform: translateY(-80px);
+            }
+
+            .botao-pixel {
+                padding: 9px 16px;
+                font-size: 16px;
+            }
+
+        }
+
+
+        /* =====================================================
+           CELULAR / TELA PEQUENA
+        ===================================================== */
+
+        @media (max-width: 700px) {
+
+            .pedido-musica {
+                flex-direction: column;
+
+                gap: 10px;
+            }
+
+            .cachorro-musica img {
+                width: min(300px, 55vw);
+            }
+
+            .balao-musica {
+                width: min(520px, 82vw);
+
+                min-height: 250px;
+
+                padding: 40px 25px;
+            }
+
+            .balao-musica::before {
+                left: 50%;
+
+                bottom: auto;
+                top: -25px;
+
+                border-left: 6px solid #171327;
+                border-bottom: 6px solid #171327;
+
+                transform:
+                    translateX(-50%)
+                    rotate(135deg);
+            }
+
+            .balao-musica p {
+                font-size: 25px;
+
+                margin-bottom: 30px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <!-- TRANSIÇÃO PIXEL AO ENTRAR NO JOGO -->
+    <div class="transicao-jogo" id="transicaoJogo" aria-hidden="true">
+        <span class="icone-transicao">✦</span>
+    </div>
+
+
+    <!-- =====================================================
+         MÚSICA
+    ===================================================== -->
+
+    <audio id="musicaMenu" loop>
+
+        <source
+            src="audio/Bossanova.mpeg"
+            type="audio/mpeg"
+        >
+
+    </audio>
+
+
+    <!-- Som de digitação 8-bit — coloca o arquivo na pasta audio/ -->
+    <audio id="somDigitacao" preload="auto" loop style="display:none;">
+        <source src="audio/texting.mp3" type="audio/mpeg">
+        <source src="audio/texting.mpeg" type="audio/mpeg">
+        <source src="audio/texting.wav" type="audio/wav">
+        <source src="audio/texting.ogg" type="audio/ogg">
+        <source src="audio/texting.mp4" type="audio/mp4">
+    </audio>
+
+
+    <!-- =====================================================
+         PEDIDO DE MÚSICA
+    ===================================================== -->
+
+    <div
+        class="pedido-musica"
+        id="pedidoMusica"
+    >
+
+        <div class="cachorro-musica">
+
+            <img
+                src="imagens/cachorro.png"
+                alt="Cachorrinho pixel"
+            >
+
+        </div>
+
+
+        <div class="balao-musica">
+
+            <button
+                class="fechar-musica"
+                onclick="fecharPedidoMusica()"
+            >
+                X
+            </button>
+
+
+            <p>
+                oi posso tocar<br>
+                musiquinha?
+            </p>
+
+
+            <div class="opcoes-musica">
+
+                <button
+                    class="sim-musica"
+                    onclick="aceitarMusica()"
+                >
+                    SIM
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MENU PRINCIPAL
+    ===================================================== -->
+
+    <main
+        class="menu"
+        id="menuPrincipal"
+    >
+
+        <img
+            src="imagens/logo.png"
+            alt="Logo do jogo"
+            class="logo"
+        >
+
+
+        <div class="botoes-menu">
+
+
+            <button
+                class="botao-pixel"
+                onclick="iniciarJogo()"
+            >
+                Jogar
+            </button>
+
+
+            <button
+                class="botao-pixel"
+                onclick="abrirTela('telaComoJogar')"
+            >
+                Como jogar
+            </button>
+
+
+            <button
+                class="botao-pixel"
+                onclick="abrirTela('telaSobre')"
+            >
+                Sobre o jogo
+            </button>
+
+
+            <button
+                class="botao-pixel"
+                onclick="abrirTela('telaCreditos')"
+            >
+                Créditos
+            </button>
+
+
+            <button
+                class="botao-pixel"
+                onclick="abrirTela('telaSaida')"
+            >
+                Sair do jogo
+            </button>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================================
+         TELA — JOGAR
+    ===================================================== -->
+
+    <section class="tela" id="telaJogo" aria-label="Cena de diálogo" onclick="avancarDialogo()">
+        <div class="cena-visual-novel" aria-hidden="true"></div>
+        <div class="bancada-bar" aria-hidden="true"></div>
+
+        <button class="botao-sair-cena" onclick="event.stopPropagation(); voltarMenu();">
+            ← MENU
+        </button>
+
+        <img class="personagem-bar" id="personagemBar" src="data:image/png;base64,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" alt="Personagem atrás da bancada">
+
+        <div class="caixa-dialogo" id="caixaDialogo" role="button" tabindex="0" aria-label="Continuar diálogo">
+            <div class="nome-falante" id="nomeFalante">NARRADOR</div>
+            <div class="texto-dialogo" id="textoDialogo"></div>
+            <form class="form-nome-jogador" id="formNomeJogador">
+                <input id="inputNomeJogador" type="text" maxlength="24" autocomplete="off" placeholder="Digite seu nome..." aria-label="Seu nome">
+                <button type="submit">ENVIAR</button>
+            </form>
+            <div class="indicador-continuar" id="indicadorContinuar">▼</div>
+        </div>
+
+        <div class="modo-atendimento" id="modoAtendimento">
+            <div class="tutorial-atendimento" id="tutorialAtendimento" role="dialog" aria-modal="true" aria-labelledby="tituloTutorial">
+                <div class="tutorial-cartao">
+                    <div class="tutorial-icone">🍻</div>
+                    <h2 id="tituloTutorial">SEU PRIMEIRO CLIENTE!</h2>
+                    <p>Vamos aprender a atender rapidinho?</p>
+                    <ol>
+                        <li>Leia o pedido do cliente e fique de olho nos <strong>30 segundos</strong>.</li>
+                        <li>Toque em <strong>“Virar para pegar o pedido”</strong>.</li>
+                        <li>No estoque, escolha exatamente o item que ele pediu.</li>
+                        <li>Toque em <strong>“Voltar para o cliente”</strong> para entregar!</li>
+                    </ol>
+                    <p class="tutorial-dica">Se pegar o item errado, pode tentar de novo — mas o tempo continua passando!</p>
+                    <button type="button" id="comecarTutorial" onclick="event.stopPropagation(); fecharTutorial()">ENTENDI, VAMOS LÁ!</button>
+                </div>
+            </div>
+            <div class="painel-pedido">
+                <h2 id="tituloPedido">NOVO CLIENTE!</h2>
+                <p id="textoPedido">O cliente está esperando o pedido...</p>
+                <div class="barra-tempo-fundo"><div class="barra-tempo" id="barraTempo"></div></div>
+            </div>
+            <div class="placar-atendimento" id="placarAtendimento">Atendidos: 0 · Foram embora: 0</div>
+            <div class="cliente-pixel" id="clientePixel">🧑</div>
+            <div class="fala-cliente" id="falaCliente">Oi! Quero fazer um pedido!</div>
+            <div class="balcao-atendimento"></div>
+            <button class="botao-virar" id="botaoVirar" onclick="event.stopPropagation(); virarParaEstoque()">↩ VIRAR PARA PEGAR O PEDIDO</button>
+            <div class="tela-estoque">
+                <h2>ESTOQUE DO BAR</h2>
+                <p id="instrucaoEstoque">Pegue exatamente o que o cliente pediu!</p>
+                <div class="grade-itens" id="gradeItens"></div>
+                <button class="botao-virar" onclick="event.stopPropagation(); voltarParaCliente()">↪ VOLTAR PARA O CLIENTE</button>
+            </div>
+            <div class="mensagem-atendimento" id="mensagemAtendimento">
+                <h2 id="tituloMensagem">OPA!</h2>
+                <p id="textoMensagem"></p>
+                <button onclick="event.stopPropagation(); continuarAtendimento()">CONTINUAR</button>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =====================================================
+         TELA — COMO JOGAR
+    ===================================================== -->
+
+    <section
+        class="tela"
+        id="telaComoJogar"
+    >
+
+        <div class="caixa">
+
+            <h1>
+                Como jogar
+            </h1>
+
+            <h2>
+                Movimentação
+            </h2>
+
+            <p>
+                Atenda os clientes do Cuiudo's Bar antes que o tempo acabe.
+            </p>
+
+            <ul>
+
+                <li>
+                    Clique em “Virar para pegar o pedido”
+                </li>
+
+                <li>
+                    Escolha no estoque o item que o cliente pediu
+                </li>
+
+                <li>
+                    Volte para a frente e entregue o pedido
+                </li>
+
+                <li>
+                    Você tem 30 segundos por cliente
+                </li>
+
+            </ul>
+
+            <h2>
+                Interação
+            </h2>
+
+            <p>
+                Vire de costas como no botão de câmera do FNF, pegue o pedido correto e volte para atender.
+            </p>
+
+            <h2>
+                Objetivo
+            </h2>
+
+            <p>
+                Atenda o maior número de clientes possível. Se os 30 segundos acabarem, o cliente fica bravo e vai embora.
+            </p>
+
+            <button
+                class="botao-voltar"
+                onclick="voltarMenu()"
+            >
+                Voltar
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TELA — SOBRE O JOGO
+    ===================================================== -->
+
+    <section
+        class="tela"
+        id="telaSobre"
+    >
+
+        <div class="caixa">
+
+            <h1>
+                Sobre o jogo
+            </h1>
+
+            <p>
+                Este é um pequeno jogo desenvolvido
+                em HTML, CSS e JavaScript.
+            </p>
+
+            <p>
+                Aqui vamos colocar a história,
+                o universo, os personagens e todas
+                as informações importantes sobre o jogo.
+            </p>
+
+            <h2>
+                História
+            </h2>
+
+            <p>
+                A história do jogo será adicionada aqui.
+            </p>
+
+            <h2>
+                Gênero
+            </h2>
+
+            <p>
+                Ainda vamos definir.
+            </p>
+
+            <button
+                class="botao-voltar"
+                onclick="voltarMenu()"
+            >
+                Voltar
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TELA — CRÉDITOS
+    ===================================================== -->
+
+    <section
+        class="tela"
+        id="telaCreditos"
+    >
+
+        <div class="caixa">
+
+            <h1>
+                Créditos
+            </h1>
+
+            <p>
+                <strong>
+                    Desenvolvimento
+                </strong>
+            </p>
+
+            <p>
+                Seu nome aqui
+            </p>
+
+            <h2>
+                Programação
+            </h2>
+
+            <p>
+                HTML • CSS • JavaScript
+            </p>
+
+            <h2>
+                Arte
+            </h2>
+
+            <p>
+                Créditos das imagens e recursos
+                serão adicionados aqui.
+            </p>
+
+            <h2>
+                Áudio
+            </h2>
+
+            <p>
+                Créditos das músicas e efeitos
+                sonoros serão adicionados aqui.
+            </p>
+
+            <button
+                class="botao-voltar"
+                onclick="voltarMenu()"
+            >
+                Voltar
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TELA — SAÍDA
+    ===================================================== -->
+
+    <section
+        class="tela"
+        id="telaSaida"
+    >
+
+        <div class="caixa saida">
+
+            <h1>
+                Até logo!
+            </h1>
+
+            <p>
+                Obrigado por jogar.
+            </p>
+
+            <p>
+                Você pode fechar esta aba
+                para sair do jogo.
+            </p>
+
+            <button
+                class="botao-voltar"
+                onclick="voltarMenu()"
+            >
+                Voltar ao jogo
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ===================================================== -->
+
+    <script>
+
+        /* =====================================================
+           MÚSICA
+        ===================================================== */
+
+        const musicaMenu =
+            document.getElementById("musicaMenu");
+
+        musicaMenu.volume = 0.5;
+
+        const somDigitacao =
+            document.getElementById("somDigitacao");
+
+        if (somDigitacao) {
+            somDigitacao.volume = 0.5;
+            // Desbloqueia áudio no primeiro clique/tecla (navegadores bloqueiam autoplay)
+            function desbloquearAudioDigitacao() {
+                somDigitacao.muted = false;
+                somDigitacao.play().then(function() {
+                    somDigitacao.pause();
+                    somDigitacao.currentTime = 0;
+                }).catch(function() {});
+                document.removeEventListener("click", desbloquearAudioDigitacao);
+                document.removeEventListener("keydown", desbloquearAudioDigitacao);
+            }
+            document.addEventListener("click", desbloquearAudioDigitacao);
+            document.addEventListener("keydown", desbloquearAudioDigitacao);
+        }
+
+
+        /* =====================================================
+           SIM — TOCAR MÚSICA
+        ===================================================== */
+
+        function aceitarMusica() {
+
+            musicaMenu.play()
+                .catch(function(erro) {
+
+                    console.log(
+                        "Não foi possível iniciar a música:",
+                        erro
+                    );
+
+                });
+
+            fecharPedidoMusica();
+
+        }
+
+
+        /* =====================================================
+           X — FECHAR SEM TOCAR
+        ===================================================== */
+
+        function fecharPedidoMusica() {
+
+            const pedido =
+                document.getElementById("pedidoMusica");
+
+            pedido.style.display = "none";
+
+        }
+
+
+        /* =====================================================
+           INICIAR JOGO COM FADE + ÍCONE
+        ===================================================== */
+
+        let transicaoEmAndamento = false;
+
+        function iniciarJogo() {
+            if (transicaoEmAndamento) return;
+            transicaoEmAndamento = true;
+
+            const transicao = document.getElementById("transicaoJogo");
+            transicao.classList.remove("ativa");
+            void transicao.offsetWidth;
+            transicao.classList.add("ativa");
+
+            // Abre a tela do jogo quando o fade já cobriu a tela.
+            window.setTimeout(function() {
+                abrirTela("telaJogo");
+            }, 470);
+
+            // Retira a camada escura depois da transição.
+            window.setTimeout(function() {
+                transicao.classList.remove("ativa");
+                transicaoEmAndamento = false;
+            }, 1350);
+        }
+
+
+        /* =====================================================
+           DIÁLOGOS DA VISUAL NOVEL
+           Quando você enviar o texto, vamos separar as falas em seções aqui.
+        ===================================================== */
+
+        const imagemPersonagemBar = document.getElementById("personagemBar");
+        imagemPersonagemBar.dataset.originalSrc = imagemPersonagemBar.src;
+
+        const dialogos = [
+            // SEÇÃO 1 — O QUE FICOU PARA TRÁS
+            { secao: "O QUE FICOU PARA TRÁS", personagem: "NARRADOR", texto: "Depois de perder o pai para uma doença, a vida de Maitê nunca mais foi a mesma." },
+            { secao: "O QUE FICOU PARA TRÁS", personagem: "NARRADOR", texto: "E, como se o luto já não fosse difícil o bastante, ela viu a mãe ficar desempregada." },
+
+            // SEÇÃO 2 — RESPONSABILIDADES
+            { secao: "RESPONSABILIDADES", personagem: "NARRADOR", texto: "De repente, Maitê se viu obrigada a assumir responsabilidades que nunca deveriam ter chegado tão cedo." },
+            { secao: "RESPONSABILIDADES", personagem: "NARRADOR", texto: "Enquanto tenta terminar a faculdade, ela vende suas artes manuais para conseguir algum dinheiro." },
+
+            // SEÇÃO 3 — CONTAS A PAGAR
+            { secao: "CONTAS A PAGAR", personagem: "NARRADOR", texto: "Mas isso já não é suficiente. Agora, Maitê precisa procurar um emprego que pague o bastante para manter as contas em dia." },
+            { secao: "CONTAS A PAGAR", personagem: "NARRADOR", texto: "Boletos se acumulam. As passagens de ônibus pesam no bolso. Os trabalhos da faculdade são entregues de madrugada..." },
+            { secao: "CONTAS A PAGAR", personagem: "NARRADOR", texto: "E, no fundo da sua mente, existe um medo que não a deixa descansar: e se ela não conseguir pagar a mensalidade do próximo semestre?" },
+
+            // SEÇÃO 4 — UM NOVO COMEÇO?
+            { secao: "UM NOVO COMEÇO?", personagem: "NARRADOR", texto: "Maitê precisa encontrar um jeito de equilibrar a vida adulta com a juventude que mal teve tempo de aproveitar." },
+            { secao: "UM NOVO COMEÇO?", personagem: "NARRADOR", texto: "E, em meio a tudo isso, ela ainda precisa se adaptar ao seu novo trabalho..." },
+            { secao: "CUIUDO'S BAR", personagem: "NARRADOR", texto: "Cuiudo's bar." },
+            { secao: "CUIUDO'S BAR", personagem: "NARRADOR", texto: "Uma mulher se aproxima..." },
+            { secao: "CUIUDO'S BAR", personagem: "Funcionária", texto: "Você está aqui. Você falou sério mesmo sobre pontualidade." , talk: true},
+            { secao: "CUIUDO'S BAR", personagem: "Funcionária", texto: "Nem todo mundo tem essa consideração." , talk: true},
+            { secao: "CUIUDO'S BAR", personagem: "(Jogador)", texto: "...", trocarPersonagem: true },
+            { secao: "CUIUDO'S BAR", personagem: "Wanessa", texto: "Acho que devo me apresentar." , talk: true},
+            { secao: "CUIUDO'S BAR", personagem: "Wanessa", texto: "Meu nome é Wanessa e esse é o Cuiudo's bar, como você já sabe. Eu vou te ajudar com algumas coisas antes de começar." , talk: true},
+            { secao: "CUIUDO'S BAR", personagem: "Wanessa", texto: "Me desculpa mas minha avó não me disse o seu nome. Como posso te chamar?", pedirNome: true , talk: true}
+        ];
+
+        let indiceDialogo = 0;
+        let digitandoDialogo = false;
+        let temporizadorDigitacao = null;
+        let textoCompletoAtual = "";
+        let transicaoCenaEmAndamento = false;
+        let personagemJaApareceu = false;
+        const velocidadeDigitacao = 28;
+
+        function mostrarDialogo() {
+            const fala = dialogos[indiceDialogo];
+            if (!fala) return;
+
+            const nome = document.getElementById("nomeFalante");
+            const texto = document.getElementById("textoDialogo");
+            const caixa = document.getElementById("caixaDialogo");
+            const indicador = document.getElementById("indicadorContinuar");
+            const formNome = document.getElementById("formNomeJogador");
+
+            // O PNG falando substitui o normal, mantendo exatamente o mesmo tamanho e posição.
+            const imagemPersonagem = document.getElementById("personagemBar");
+            if (fala.talk) {
+                imagemPersonagem.src = "imagens/personagem%20talk.png";
+            } else if (imagemPersonagem.dataset.jogadorSrc) {
+                imagemPersonagem.src = imagemPersonagem.dataset.jogadorSrc;
+            } else {
+                imagemPersonagem.src = "imagens/personagem.png";
+            }
+
+            formNome.classList.remove("visivel");
+            nome.textContent = fala.personagem || "";
+            // Ao chegar à fala do Cuiudo's bar, troca o fundo da lápide pelo interior do bar.
+            document.getElementById("telaJogo").classList.toggle("cena-bar", fala.secao === "CUIUDO'S BAR");
+            texto.textContent = "";
+            textoCompletoAtual = fala.texto || "";
+            digitandoDialogo = true;
+            caixa.classList.add("digitando");
+            indicador.textContent = "▼";
+
+            // Mantém o efeito de digitação tocando enquanto as letras aparecem.
+            if (somDigitacao) {
+                try {
+                    somDigitacao.loop = true;
+                    somDigitacao.load();
+                    somDigitacao.currentTime = 0;
+                    const tentativaSom = somDigitacao.play();
+                    if (tentativaSom && typeof tentativaSom.catch === "function") {
+                        tentativaSom.catch(function(err) {
+                            console.log("Não foi possível tocar o som texting:", err);
+                        });
+                    }
+                } catch (e) {
+                    console.log("Erro ao iniciar o som texting:", e);
+                }
+            }
+
+            let caractere = 0;
+            clearInterval(temporizadorDigitacao);
+            temporizadorDigitacao = setInterval(function() {
+                if (caractere >= textoCompletoAtual.length) {
+                    clearInterval(temporizadorDigitacao);
+                    temporizadorDigitacao = null;
+                    digitandoDialogo = false;
+                    caixa.classList.remove("digitando");
+                    if (fala.pedirNome) {
+                        formNome.classList.add("visivel");
+                        document.getElementById("indicadorContinuar").style.display = "none";
+                        document.getElementById("inputNomeJogador").focus();
+                    } else {
+                        document.getElementById("indicadorContinuar").style.display = "block";
+                    }
+                    if (somDigitacao) {
+                        somDigitacao.pause();
+                        somDigitacao.currentTime = 0;
+                    }
+                    return;
+                }
+                texto.textContent += textoCompletoAtual.charAt(caractere);
+                caractere++;
+            }, velocidadeDigitacao);
+        }
+
+        function avancarDialogo() {
+            const tela = document.getElementById("telaJogo");
+            if (!tela.classList.contains("ativa") || transicaoCenaEmAndamento || tela.classList.contains("atendendo")) return;
+
+            const texto = document.getElementById("textoDialogo");
+            const caixa = document.getElementById("caixaDialogo");
+
+            // Se a fala ainda estiver sendo digitada, o clique revela tudo de uma vez.
+            if (digitandoDialogo) {
+                clearInterval(temporizadorDigitacao);
+                temporizadorDigitacao = null;
+                texto.textContent = textoCompletoAtual;
+                digitandoDialogo = false;
+                caixa.classList.remove("digitando");
+                if (dialogos[indiceDialogo].pedirNome) {
+                    document.getElementById("formNomeJogador").classList.add("visivel");
+                    document.getElementById("indicadorContinuar").style.display = "none";
+                    document.getElementById("inputNomeJogador").focus();
+                }
+                if (somDigitacao) {
+                    somDigitacao.pause();
+                    somDigitacao.currentTime = 0;
+                }
+                return;
+            }
+
+            // A personagem aparece em silhueta na fala "Uma mulher se aproxima...".
+            if (dialogos[indiceDialogo].texto === "Cuiudo's bar." && !personagemJaApareceu) {
+                personagemJaApareceu = true;
+                tela.classList.add("personagem-visivel");
+                indiceDialogo++;
+                mostrarDialogo();
+                return;
+            }
+
+            // Revela a personagem em cores após a fala "Uma mulher se aproxima...".
+            if (dialogos[indiceDialogo].texto === "Uma mulher se aproxima..." &&
+                personagemJaApareceu && !tela.classList.contains("personagem-revelada")) {
+                tela.classList.add("personagem-revelada");
+                indiceDialogo++;
+                mostrarDialogo();
+                return;
+            }
+
+            // Na fala do jogador, troca a imagem da Wanessa para imagens/personagem.png.
+            if (dialogos[indiceDialogo].trocarPersonagem) {
+                const imagemPersonagem = document.getElementById("personagemBar");
+                imagemPersonagem.dataset.jogadorSrc = "imagens/personagem.png";
+                imagemPersonagem.src = "imagens/personagem.png";
+                imagemPersonagem.style.objectFit = "contain";
+            }
+
+            // A caixa de nome controla o avanço; não avançar clicando nela.
+            if (dialogos[indiceDialogo].pedirNome) return;
+
+            // Depois da última fala introdutória, começa o minijogo do bar.
+            if (indiceDialogo >= dialogos.length - 1) {
+                iniciarAtendimento();
+                return;
+            }
+
+            const proximoIndice = Math.min(indiceDialogo + 1, dialogos.length - 1);
+            if (proximoIndice === indiceDialogo) return;
+
+            // Ao sair da backstory e entrar no bar, faz fade-out/fade-in
+            // para esconder os balões antigos antes de trocar o cenário.
+            if (dialogos[proximoIndice].secao === "CUIUDO'S BAR" &&
+                dialogos[indiceDialogo].secao !== "CUIUDO'S BAR") {
+                transicionarParaCenaBar(proximoIndice);
+                return;
+            }
+
+            indiceDialogo = proximoIndice;
+            mostrarDialogo();
+        }
+
+        function transicionarParaCenaBar(novoIndice) {
+            if (transicaoCenaEmAndamento) return;
+            transicaoCenaEmAndamento = true;
+
+            const transicao = document.getElementById("transicaoJogo");
+            const nome = document.getElementById("nomeFalante");
+            const texto = document.getElementById("textoDialogo");
+            const caixa = document.getElementById("caixaDialogo");
+
+            clearInterval(temporizadorDigitacao);
+            temporizadorDigitacao = null;
+            digitandoDialogo = false;
+            caixa.classList.remove("digitando");
+
+            transicao.classList.remove("ativa");
+            void transicao.offsetWidth;
+            transicao.classList.add("ativa");
+
+            // Quando a tela estiver totalmente escura, troca o cenário e prepara
+            // o diálogo do bar. Assim ele já estará pronto antes do fade-in.
+            window.setTimeout(function() {
+                nome.textContent = "";
+                texto.textContent = "";
+                indiceDialogo = novoIndice;
+                mostrarDialogo();
+            }, 560);
+
+            window.setTimeout(function() {
+                transicao.classList.remove("ativa");
+                transicaoCenaEmAndamento = false;
+            }, 1350);
+        }
+
+        document.getElementById("caixaDialogo").addEventListener("click", function(event) {
+            event.stopPropagation();
+            avancarDialogo();
+        });
+
+        const formNomeJogador = document.getElementById("formNomeJogador");
+        formNomeJogador.addEventListener("click", function(event) { event.stopPropagation(); });
+        formNomeJogador.addEventListener("submit", function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const campoNome = document.getElementById("inputNomeJogador");
+            const nomeJogador = campoNome.value.trim();
+            if (!nomeJogador) {
+                campoNome.focus();
+                return;
+            }
+            window.nomeJogador = nomeJogador;
+            formNomeJogador.classList.remove("visivel");
+            document.getElementById("indicadorContinuar").style.display = "block";
+            // Guarda o nome e responde antes de continuar a história.
+            dialogos[indiceDialogo] = {
+                secao: "CUIUDO'S BAR",
+                personagem: "Wanessa",
+                texto: "Prazer em te conhecer, " + nomeJogador + "."
+            };
+            mostrarDialogo();
+        });
+
+        document.getElementById("caixaDialogo").addEventListener("keydown", function(event) {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                avancarDialogo();
+            }
+        });
+
+        function reiniciarDialogo() {
+            jogoAtendimentoAtivo = false;
+            clearInterval(intervaloTempo);
+            document.getElementById("telaJogo").classList.remove("atendendo", "virado");
+            document.getElementById("caixaDialogo").style.display = "";
+            document.getElementById("personagemBar").style.display = "";
+            document.getElementById("mensagemAtendimento").classList.remove("visivel");
+            document.getElementById("tutorialAtendimento").classList.remove("visivel");
+            indiceDialogo = 0;
+            personagemJaApareceu = false;
+            const tela = document.getElementById("telaJogo");
+            tela.classList.remove("personagem-visivel", "personagem-revelada");
+            document.getElementById("formNomeJogador").classList.remove("visivel");
+            document.getElementById("inputNomeJogador").value = "";
+            document.getElementById("indicadorContinuar").style.display = "block";
+            const imagemPersonagem = document.getElementById("personagemBar");
+            imagemPersonagem.src = imagemPersonagem.dataset.originalSrc || imagemPersonagem.src;
+            clearInterval(temporizadorDigitacao);
+            temporizadorDigitacao = null;
+            if (somDigitacao) {
+                somDigitacao.pause();
+                somDigitacao.currentTime = 0;
+            }
+            mostrarDialogo();
+        }
+
+
+        /* =====================================================
+           MINIGAME — ATENDIMENTO DO CUIUDO'S BAR
+        ===================================================== */
+        const itensBar = [
+            { nome: "Pão de queijo", imagem: "paodequeijo.png" },
+            { nome: "Coxinha", imagem: "coxinha.png" },
+            { nome: "Pastel", imagem: "pastel.png" },
+            { nome: "Caipirinha", imagem: "caipirinha.png" },
+            { nome: "Chope", imagem: "chope.png" },
+            { nome: "Cerveja", imagem: "cerveja.png" },
+            { nome: "Guaraná", imagem: "guarana.png" },
+            { nome: "Tereré", imagem: "terere.png" },
+            { nome: "Suco", imagem: "suco.png" },
+            { nome: "Água de coco", imagem: "aguadecoco.png" }
+        ];
+        let pedidoAtual = null;
+        let tempoRestante = 30;
+        let intervaloTempo = null;
+        let atendidos = 0;
+        let clientesPerdidos = 0;
+        let estoqueEscolhido = null;
+        let jogoAtendimentoAtivo = false;
+        let clienteVirado = false;
+        let tutorialJaMostrado = false;
+
+        function iniciarAtendimento() {
+            const tela = document.getElementById("telaJogo");
+            tela.classList.add("atendendo");
+            tela.classList.remove("virado");
+            document.getElementById("caixaDialogo").style.display = "none";
+            document.getElementById("personagemBar").style.display = "none";
+            atendidos = 0;
+            clientesPerdidos = 0;
+            tutorialJaMostrado = false;
+            jogoAtendimentoAtivo = true;
+            atualizarPlacar();
+            montarEstoque();
+            novoCliente();
+        }
+
+        function fecharTutorial() {
+            document.getElementById("tutorialAtendimento").classList.remove("visivel");
+            tutorialJaMostrado = true;
+            if (jogoAtendimentoAtivo) {
+                tempoRestante = 30;
+                document.getElementById("barraTempo").style.width = "100%";
+                clearInterval(intervaloTempo);
+                intervaloTempo = setInterval(function() {
+                    tempoRestante -= 0.1;
+                    const porcentagem = Math.max(0, tempoRestante / 30 * 100);
+                    document.getElementById("barraTempo").style.width = porcentagem + "%";
+                    if (tempoRestante <= 10) document.getElementById("barraTempo").style.background = "#ef7777";
+                    if (tempoRestante <= 0) clienteFoiEmbora();
+                }, 100);
+            }
+        }
+
+        function montarEstoque() {
+            const grade = document.getElementById("gradeItens");
+            grade.innerHTML = "";
+            itensBar.forEach(function(item) {
+                const botao = document.createElement("button");
+                botao.className = "item-estoque";
+                botao.innerHTML = '<span class="imagem-item-estoque"><img src="imagens/' + item.imagem + '" alt=""></span>' + item.nome;
+                botao.onclick = function(event) {
+                    event.stopPropagation();
+                    if (!jogoAtendimentoAtivo || !clienteVirado || !pedidoAtual) return;
+                    estoqueEscolhido = item;
+                    document.getElementById("instrucaoEstoque").textContent = "Você pegou: " + item.nome + ". Volte para entregar!";
+                    grade.querySelectorAll("button").forEach(b => b.disabled = true);
+                    botao.disabled = false;
+                    botao.style.outline = "4px solid #ffe9a8";
+                };
+                grade.appendChild(botao);
+            });
+        }
+
+        function novoCliente() {
+            if (!jogoAtendimentoAtivo) return;
+            clearInterval(intervaloTempo);
+            pedidoAtual = itensBar[Math.floor(Math.random() * itensBar.length)];
+            tempoRestante = 30;
+            estoqueEscolhido = null;
+            clienteVirado = false;
+            const telaJogo = document.getElementById("telaJogo");
+            telaJogo.classList.remove("virado");
+            // Garante que o botão de virar sempre esteja disponível para o novo cliente.
+            const botaoVirar = document.getElementById("botaoVirar");
+            botaoVirar.disabled = false;
+            botaoVirar.style.pointerEvents = "auto";
+            botaoVirar.style.display = "";
+            document.getElementById("tituloPedido").textContent = "NOVO CLIENTE!";
+            document.getElementById("textoPedido").textContent = "Pedido: " + pedidoAtual.nome + "!";
+            document.getElementById("falaCliente").textContent = "Oi! Você pode me trazer " + artigoPedido(pedidoAtual.nome) + "?";
+            document.getElementById("clientePixel").textContent = ["🧑","👩","👨","🧔","👵","👩‍🦱","🧑‍🦰"][Math.floor(Math.random()*7)];
+            document.getElementById("barraTempo").style.width = "100%";
+            document.getElementById("barraTempo").style.background = "#a5d6a7";
+            document.getElementById("gradeItens").querySelectorAll("button").forEach(b => { b.disabled = false; b.style.outline = ""; });
+            document.getElementById("instrucaoEstoque").textContent = "Pegue exatamente o que o cliente pediu!";
+            document.getElementById("botaoVirar").textContent = "↩ VIRAR PARA PEGAR O PEDIDO";
+            document.getElementById("botaoVirar").disabled = false;
+            document.getElementById("mensagemAtendimento").classList.remove("visivel");
+            if (!tutorialJaMostrado) {
+                document.getElementById("tutorialAtendimento").classList.add("visivel");
+                document.getElementById("tituloPedido").textContent = "SEU PRIMEIRO CLIENTE";
+                clearInterval(intervaloTempo);
+                return;
+            }
+            intervaloTempo = setInterval(function() {
+                tempoRestante -= 0.1;
+                const porcentagem = Math.max(0, tempoRestante / 30 * 100);
+                document.getElementById("barraTempo").style.width = porcentagem + "%";
+                if (tempoRestante <= 10) document.getElementById("barraTempo").style.background = "#ef7777";
+                if (tempoRestante <= 0) clienteFoiEmbora();
+            }, 100);
+        }
+
+        function artigoPedido(nome) {
+            if (["Água de coco"].includes(nome)) return "uma " + nome.toLowerCase();
+            if (["Pão de queijo"].includes(nome)) return "um " + nome.toLowerCase();
+            if (["Coxinha","Caipirinha","Cerveja"].includes(nome)) return "uma " + nome.toLowerCase();
+            if (["Pastel","Chope","Guaraná","Suco","Tereré"].includes(nome)) return "um " + nome.toLowerCase();
+            return nome.toLowerCase();
+        }
+
+        function virarParaEstoque() {
+            if (!jogoAtendimentoAtivo || !pedidoAtual) return;
+            const telaJogo = document.getElementById("telaJogo");
+            // Se já estiver no estoque, não altera o estado; ao voltar, novoCliente
+            // redefine esse estado para que o botão possa ser usado outra vez.
+            clienteVirado = true;
+            telaJogo.classList.add("virado");
+            document.getElementById("instrucaoEstoque").textContent = estoqueEscolhido
+                ? "Você pegou: " + estoqueEscolhido.nome + ". Volte para entregar!"
+                : "Pegue exatamente o que o cliente pediu!";
+        }
+
+        function voltarParaCliente() {
+            if (!jogoAtendimentoAtivo) return;
+            const telaJogo = document.getElementById("telaJogo");
+            telaJogo.classList.remove("virado");
+            clienteVirado = false;
+            // O botão principal volta a ficar clicável toda vez que a tela frontal aparece.
+            const botaoVirar = document.getElementById("botaoVirar");
+            botaoVirar.disabled = false;
+            botaoVirar.style.pointerEvents = "auto";
+            if (estoqueEscolhido) {
+                if (estoqueEscolhido.nome === pedidoAtual.nome) {
+                    clearInterval(intervaloTempo);
+                    atendidos++;
+                    atualizarPlacar();
+                    document.getElementById("tituloPedido").textContent = "PEDIDO ENTREGUE!";
+                    document.getElementById("falaCliente").textContent = "Muito obrigado! Até a próxima!";
+                    document.getElementById("botaoVirar").disabled = true;
+                    document.getElementById("botaoVirar").textContent = "✓ PEDIDO ENTREGUE!";
+                    // Dá um instante para mostrar a reação feliz e então chama o próximo cliente.
+                    window.setTimeout(function() {
+                        if (!jogoAtendimentoAtivo) return;
+                        document.getElementById("botaoVirar").disabled = false;
+                        novoCliente();
+                    }, 1100);
+                } else {
+                    estoqueEscolhido = null;
+                    document.getElementById("falaCliente").textContent = "Isso não foi o que eu pedi! Corre, o tempo está passando!";
+                    document.getElementById("gradeItens").querySelectorAll("button").forEach(b => { b.disabled = false; b.style.outline = ""; });
+                    document.getElementById("instrucaoEstoque").textContent = "Pegue o item correto desta vez!";
+                }
+            }
+        }
+
+        function clienteFoiEmbora() {
+            clearInterval(intervaloTempo);
+            clientesPerdidos++;
+            atualizarPlacar();
+            document.getElementById("falaCliente").textContent = "QUE DEMORA! Estou indo embora!";
+            mostrarResultado("O CLIENTE FICOU BRAVO!", "O tempo acabou e o cliente foi embora sem ser atendido.", false);
+        }
+
+        function mostrarResultado(titulo, mensagem, sucesso) {
+            document.getElementById("tituloMensagem").textContent = titulo;
+            document.getElementById("textoMensagem").textContent = mensagem;
+            document.getElementById("mensagemAtendimento").classList.add("visivel");
+            document.getElementById("mensagemAtendimento").dataset.sucesso = sucesso ? "sim" : "nao";
+        }
+
+        function continuarAtendimento() {
+            document.getElementById("mensagemAtendimento").classList.remove("visivel");
+            if (jogoAtendimentoAtivo) novoCliente();
+        }
+
+        function atualizarPlacar() {
+            document.getElementById("placarAtendimento").textContent = "Atendidos: " + atendidos + " · Foram embora: " + clientesPerdidos;
+        }
+
+        /* =====================================================
+           ABRIR TELAS
+        ===================================================== */
+
+        function abrirTela(id) {
+
+            const telas =
+                document.querySelectorAll(".tela");
+
+            telas.forEach(function(tela) {
+
+                tela.classList.remove("ativa");
+
+            });
+
+            const telaEscolhida =
+                document.getElementById(id);
+
+            if (telaEscolhida) {
+
+                telaEscolhida.classList.add("ativa");
+                if (id === "telaJogo") reiniciarDialogo();
+
+            }
+
+        }
+
+
+        /* =====================================================
+           VOLTAR AO MENU
+        ===================================================== */
+
+        function voltarMenu() {
+
+            const telas =
+                document.querySelectorAll(".tela");
+
+            telas.forEach(function(tela) {
+
+                tela.classList.remove("ativa");
+
+            });
+
+        }
+
+
+        /* =====================================================
+           TECLA ESC
+        ===================================================== */
+
+        document.addEventListener(
+            "keydown",
+            function(event) {
+
+                if (event.key === "Escape") {
+                    voltarMenu();
+                    return;
+                }
+
+                if (event.key === "Enter" || event.key === " " || event.key === "ArrowRight") {
+                    if (document.getElementById("telaJogo").classList.contains("ativa") && event.target.id !== "caixaDialogo") {
+                        event.preventDefault();
+                        avancarDialogo();
+                    }
+                }
+
+            }
+        );
+
+    </script>
+
+
+    <button id="botaoTelaCheia" type="button" aria-label="Ativar tela cheia">⛶ Tela cheia</button>
+    <div id="ajudaTelaCheia" role="dialog" aria-modal="true" aria-labelledby="tituloAjudaTelaCheia">
+      <div class="cartao-ajuda">
+        <h2 id="tituloAjudaTelaCheia">Como aproveitar a tela toda</h2>
+        <p id="textoAjudaTelaCheia">Este navegador pode não permitir que uma página esconda as barras automaticamente. Você ainda pode jogar na horizontal; para uma experiência mais ampla, use a opção de tela cheia do navegador ou adicione o jogo à tela inicial.</p>
+        <button type="button" id="fecharAjudaTelaCheia">Entendi</button>
+      </div>
+    </div>
+    <script>
+    (function () {
+      const btn = document.getElementById('botaoTelaCheia');
+      const help = document.getElementById('ajudaTelaCheia');
+      const close = document.getElementById('fecharAjudaTelaCheia');
+      const helpText = document.getElementById('textoAjudaTelaCheia');
+
+      // Usa a altura visual real em navegadores com barras móveis e recua em versões antigas.
+      function ajustarAlturaVisivel() {
+        const vv = window.visualViewport;
+        const h = vv && vv.height ? vv.height : window.innerHeight;
+        if (h > 0) document.documentElement.style.setProperty('--altura-visivel', h + 'px');
+      }
+      ajustarAlturaVisivel();
+      window.addEventListener('resize', ajustarAlturaVisivel, { passive: true });
+      window.addEventListener('orientationchange', function () { setTimeout(ajustarAlturaVisivel, 180); setTimeout(ajustarAlturaVisivel, 650); }, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', ajustarAlturaVisivel, { passive: true });
+        window.visualViewport.addEventListener('scroll', ajustarAlturaVisivel, { passive: true });
+      }
+
+      function estaEmTelaCheia() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+      }
+      function mostrarAjuda() {
+        const ua = navigator.userAgent || '';
+        if (/MiuiBrowser|Xiaomi|Redmi/i.test(ua)) {
+          helpText.textContent = 'No Mi Browser, toque no menu ⋮ ou ☰ e procure Tela cheia, Ocultar barra de ferramentas ou modo de exibição. O nome varia conforme a versão. Se não existir, use Adicionar à tela inicial. Depois, abra o ícone criado e vire o celular na horizontal.';
+        } else if (/iPhone|iPad|iPod/i.test(ua)) {
+          helpText.textContent = 'No Safari do iPhone/iPad, a página não consegue forçar a tela cheia tradicional. Toque em Compartilhar e escolha Adicionar à Tela de Início; abra pelo ícone criado. Isso costuma dar mais espaço. Vire o aparelho na horizontal.';
+        } else if (/Android/i.test(ua)) {
+          helpText.textContent = 'Se as barras continuarem aparecendo, abra o menu ⋮ do navegador e procure Tela cheia ou Instalar/Adicionar à tela inicial. Os nomes mudam entre Chrome, Samsung Internet, Firefox, Opera e outros. Abrir pelo ícone da tela inicial costuma liberar mais espaço.';
+        }
+        help.style.display = 'flex';
+      }
+      btn.addEventListener('click', async function () {
+        if (estaEmTelaCheia()) {
+          try { if (document.exitFullscreen) await document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch (e) {}
+          return;
+        }
+        let entrou = false;
+        const alvo = document.documentElement;
+        try {
+          if (alvo.requestFullscreen) { await alvo.requestFullscreen(); entrou = true; }
+          else if (alvo.webkitRequestFullscreen) { alvo.webkitRequestFullscreen(); entrou = true; }
+          else if (alvo.msRequestFullscreen) { alvo.msRequestFullscreen(); entrou = true; }
+        } catch (e) { entrou = false; }
+        // Alguns navegadores Android só aceitam travar a orientação depois de entrar em fullscreen.
+        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (e) {}
+        setTimeout(ajustarAlturaVisivel, 120);
+        if (!entrou) mostrarAjuda();
+      });
+      close.addEventListener('click', function () { help.style.display = 'none'; });
+      help.addEventListener('click', function (e) { if (e.target === help) help.style.display = 'none'; });
+      document.addEventListener('fullscreenchange', function () { btn.textContent = estaEmTelaCheia() ? '⤢ Sair da tela cheia' : '⛶ Tela cheia'; ajustarAlturaVisivel(); });
+      document.addEventListener('webkitfullscreenchange', function () { btn.textContent = estaEmTelaCheia() ? '⤢ Sair da tela cheia' : '⛶ Tela cheia'; ajustarAlturaVisivel(); });
+    })();
+    </script>
+
+    <div class="aviso-orientacao" role="status" aria-live="polite">
+        <div class="icone-girar">📱 ↻</div>
+        <h2>VIRE O CELULAR DE LADO!</h2>
+        <p>O Cuiudo's Bar foi feito para jogar com a tela na horizontal. Gire seu celular para continuar. 🍻</p>
+    </div>
+
+</body>
+
+</html>
